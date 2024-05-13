@@ -15,6 +15,16 @@ Read stream;
 Write Stream;
 Piping;
 
+Creating server;
+Sending HTML file;
+Routing;
+Redirect;
+
+Node.js html,css,js file serving template;
+
+express file serving;
+express redirect;
+
 
 
 
@@ -99,9 +109,126 @@ readStream.pipe(writeStream);
 const http = require('http');
 
 const serverName = http.createServer((req, res) =>{
-
+  console.log(req.url, req.method);
 });
 
 serverName.listen(3000, "localhost", () =>{
 
 });
+
+//sending html file
+const fs = require('fs');
+res.setHeader('Content-Type', "text/html");
+
+fs.readFile('./fileName.html', (err, data) =>{
+  if(err){
+    console.log(err);
+  }else {
+    res.end(data);
+  }
+});
+
+//routing
+let path ='./folderName/';
+
+switch(req.url){
+  case '/':
+    path += 'index.html'
+    res.statusCode = 200;
+    break;
+  default:
+    path += '404.html';
+    res.statusCode = 404;
+    break;
+}
+
+//redirect
+case '/fileName';
+res.statusCode = 301;
+res.setheader('Location', '/fileName');
+res.end();
+
+//template for node.js html, css, js file serving
+const http = require("http");
+const fs = require("fs");
+const path = require("path");
+
+const server = http.createServer((req, res) => {
+  console.log(req.url, req.method);
+
+  let filePath = "./Client/";
+  switch (req.url) {
+    case "/":
+      filePath += "index.html";
+      res.statusCode = 200;
+      break;
+    case "/styles.css":
+      filePath += "/styles.css";
+      res.statusCode = 200;
+      break;
+    case "/script.js":
+      filePath += "/script.js";
+      res.statusCode = 200;
+      break;
+    default:
+      filePath += "404.html";
+      res.statusCode = 404;
+      break;
+  }
+
+  const contentType = {
+    ".html": "text/html",
+    ".css": "text/css",
+    ".js": "text/javascript",
+  };
+
+  const extension = path.extname(filePath);
+  const contentTypeHeader = contentType[extension] || "text/html";
+  res.setHeader("Content-Type", contentTypeHeader);
+
+  fs.readFile(filePath, (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.end(data);
+    }
+  });
+});
+
+server.listen(3000, "localhost", () => {
+  console.log("listening for requests on port 3000");
+});
+
+//express
+
+const express = require('express');
+
+const app = express();
+
+app.listen(3000);
+
+/**can be done this way by setting the root path to project directory*/
+app.get('/', (req, res) =>{
+  res.sendFile('./fileName', { root: __dirname });
+});
+/**or can be done using path module */
+const path = require('path');
+
+app.get('/', (req, res) =>{
+  res.sendFile(path.join(__dirname, './fileName'));
+});
+
+//express redirect
+app.get('./fileName', (req, res) =>{
+  res.redirect('./fileName');
+});
+
+//express 404 page
+app.use((req, res) =>{
+  /**this way */
+  res.sendFile('./404.html', { root: __dirname });
+  /**or this way */
+  res.sendFile(path.join(__dirname, './404.html'));
+});
+
+
