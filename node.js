@@ -23,7 +23,16 @@ Redirect;
 Node.js html,css,js file serving template;
 
 express file serving;
+express static files;
+express form data;
 express redirect;
+express 404;
+express next;
+
+ejs;
+ejs render;
+
+
 
 
 
@@ -199,11 +208,18 @@ server.listen(3000, "localhost", () => {
   console.log("listening for requests on port 3000");
 });
 
-//express
+//express file serving
 
 const express = require('express');
 
 const app = express();
+
+//setting folder for static files (relative path from app.js)
+app.use(express.static(path.join(__dirname, "../public")));
+
+//express function for converting form data
+app.use(express.urlencoded({ extended: true }));
+
 
 app.listen(3000);
 
@@ -229,6 +245,53 @@ app.use((req, res) =>{
   res.sendFile('./404.html', { root: __dirname });
   /**or this way */
   res.sendFile(path.join(__dirname, './404.html'));
+});
+
+//express next function
+app.use((req, res, next) =>{
+  console.log("blah blah blah");
+  next();
+});
+
+//EJS
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, './folderName'));
+
+//EJS render ejs file
+app.get('./fileName', (req, res) =>{
+  /**no extension on fileName */
+  res.render('fileName');
+});
+
+//node.js parse form data
+const multer = require("multer");
+const upload = multer();
+app.use(upload.none());
+
+//node.js query function example
+const pool = require("./db_connection.js");
+
+function insertDailyInfoForm(date, mileageStart, mileageEnd, pay, company, callback) {
+  pool.query("INSERT INTO mileage_and_pay (date, mileage_start, mileage_end, pay, company) VALUES (?, ?, ?, ?, ?)", [date, mileageStart, mileageEnd, pay, company], callback);
+}
+
+module.exports = {
+  insertDailyInfoForm,
+};
+
+//node.js using query function in post example
+app.post("/dailyInfoForm", (req, res) => {
+  const formData = req.body;
+  console.log(formData);
+  console.log("Form data recieved succesfuly");
+
+  query.insertDailyInfoForm(req.body.date, req.body.mileageStart, req.body.mileageEnd, req.body.pay, req.body.company, (err, data) => {
+    if (err) {
+      console.error("Error executing query:", err);
+    } else {
+      console.log("Query results:", data);
+    }
+  });
 });
 
 
