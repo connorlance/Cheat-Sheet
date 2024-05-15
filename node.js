@@ -280,18 +280,50 @@ module.exports = {
 };
 
 //node.js using query function in post example
-app.post("/dailyInfoForm", (req, res) => {
-  const formData = req.body;
-  console.log(formData);
-  console.log("Form data recieved succesfuly");
-
-  query.insertDailyInfoForm(req.body.date, req.body.mileageStart, req.body.mileageEnd, req.body.pay, req.body.company, (err, data) => {
+/**This function utilizes a callback parameter. It performs a database query, handling errors by logging them with console.error, and logs the retrieved data with console.log if no errors occur. Additionally, if a callback parameter was provided by the caller, the function returns any errors or data retrieved from the database, allowing the caller to execute their error or data handling logic within an if-else statement. */
+function insertDailyInfoForm(date, mileageStart, mileageEnd, pay, company, callback) {
+  pool.query("INSERT INTO mileage_and_pay (date, mileage_start, mileage_end, pay, company) VALUES (?, ?, ?, ?, ?)", [date, mileageStart, mileageEnd, pay, company], (err, data) => {
     if (err) {
       console.error("Error executing query:", err);
     } else {
       console.log("Query results:", data);
     }
+    if (callback) {
+      callback(err, data);
+    }
   });
+}
+//node.js function caller exmaple
+app.post("/dailyInfoForm", (req, res) => {
+  const formData = req.body;
+  console.log(formData);
+
+  query.insertDailyInfoForm(req.body.date, req.body.mileageStart, req.body.mileageEnd, req.body.pay, req.body.company);
 });
+/**or with callback */
+app.post("/dailyInfoForm", (req, res) => {
+  const formData = req.body;
+  console.log(formData);
+
+  query.insertDailyInfoForm(req.body.date, req.body.mileageStart, req.body.mileageEnd, req.body.pay, req.body.company, (err, data) =>{
+    if(err){
+      
+    }else{
+      
+    }
+  })
+});
+
+//validation using express-validator example
+const validateDailyInfoForm = [
+  body("date").toDate().isISO8601(),
+  body("mileageStart").toFloat().isNumeric(),
+  body("mileageEnd").toFloat().isNumeric(),
+  body("pay").toFloat().isNumeric(),
+  body("company")
+    .trim()
+    .customSanitizer((value) => value.replace(/[<>&$%?.*;'"`\\/]/g, "")),
+];
+
 
 
